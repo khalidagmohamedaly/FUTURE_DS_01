@@ -1,0 +1,201 @@
+"""
+Script pour générer un dataset e-commerce de démonstration
+Future Interns - Task 1
+Author: KHALID AG MOHAMED ALY
+"""
+
+import pandas as pd
+import numpy as np
+from datetime import datetime, timedelta
+import random
+
+# Configuration
+np.random.seed(42)
+random.seed(42)
+
+# Définir les paramètres
+n_records = 5000  # Nombre d'enregistrements
+
+# Listes de données
+products = [
+    'Laptop', 'Smartphone', 'Tablet', 'Headphones', 'Smart Watch',
+    'Keyboard', 'Mouse', 'Monitor', 'Webcam', 'USB Cable',
+    'Charger', 'Power Bank', 'External Hard Drive', 'Memory Card', 'Router',
+    'Printer', 'Scanner', 'Desk Lamp', 'Office Chair', 'Desk'
+]
+
+categories = {
+    'Laptop': 'Electronics',
+    'Smartphone': 'Electronics',
+    'Tablet': 'Electronics',
+    'Headphones': 'Accessories',
+    'Smart Watch': 'Electronics',
+    'Keyboard': 'Accessories',
+    'Mouse': 'Accessories',
+    'Monitor': 'Electronics',
+    'Webcam': 'Accessories',
+    'USB Cable': 'Accessories',
+    'Charger': 'Accessories',
+    'Power Bank': 'Accessories',
+    'External Hard Drive': 'Electronics',
+    'Memory Card': 'Accessories',
+    'Router': 'Electronics',
+    'Printer': 'Office Equipment',
+    'Scanner': 'Office Equipment',
+    'Desk Lamp': 'Furniture',
+    'Office Chair': 'Furniture',
+    'Desk': 'Furniture'
+}
+
+prices = {
+    'Laptop': (800, 2500),
+    'Smartphone': (300, 1200),
+    'Tablet': (250, 800),
+    'Headphones': (30, 300),
+    'Smart Watch': (150, 500),
+    'Keyboard': (20, 150),
+    'Mouse': (10, 80),
+    'Monitor': (150, 600),
+    'Webcam': (40, 200),
+    'USB Cable': (5, 30),
+    'Charger': (15, 60),
+    'Power Bank': (20, 100),
+    'External Hard Drive': (50, 300),
+    'Memory Card': (10, 80),
+    'Router': (40, 200),
+    'Printer': (100, 500),
+    'Scanner': (80, 400),
+    'Desk Lamp': (20, 100),
+    'Office Chair': (100, 500),
+    'Desk': (150, 800)
+}
+
+regions = ['North', 'South', 'East', 'West', 'Central']
+
+# Générer les dates (derniers 12 mois)
+start_date = datetime.now() - timedelta(days=365)
+end_date = datetime.now()
+
+# Créer le dataset
+data = []
+
+for i in range(n_records):
+    # Générer Order ID
+    order_id = f"ORD{str(i+1).zfill(6)}"
+    
+    # Sélectionner un produit aléatoire
+    product = random.choice(products)
+    
+    # Obtenir la catégorie
+    category = categories[product]
+    
+    # Générer la quantité (distribution réaliste)
+    if random.random() < 0.7:  # 70% des commandes: 1-3 unités
+        quantity = random.randint(1, 3)
+    elif random.random() < 0.9:  # 20% des commandes: 4-10 unités
+        quantity = random.randint(4, 10)
+    else:  # 10% des commandes: 11-50 unités (commandes en gros)
+        quantity = random.randint(11, 50)
+    
+    # Générer le prix (avec variation)
+    min_price, max_price = prices[product]
+    price = round(random.uniform(min_price, max_price), 2)
+    
+    # Générer la date de commande
+    days_ago = random.randint(0, 365)
+    order_date = (end_date - timedelta(days=days_ago)).strftime('%Y-%m-%d')
+    
+    # Générer Customer ID
+    customer_id = f"CUST{random.randint(1, 1000):04d}"
+    
+    # Sélectionner une région
+    region = random.choice(regions)
+    
+    # Ajouter l'enregistrement
+    data.append({
+        'Order ID': order_id,
+        'Product': product,
+        'Category': category,
+        'Quantity': quantity,
+        'Price': price,
+        'Order Date': order_date,
+        'Customer ID': customer_id,
+        'Region': region
+    })
+
+# Créer le DataFrame
+df = pd.DataFrame(data)
+
+# Ajouter quelques valeurs manquantes de manière réaliste (5% des données)
+missing_indices = random.sample(range(len(df)), int(len(df) * 0.05))
+for idx in missing_indices[:len(missing_indices)//2]:
+    df.loc[idx, 'Customer ID'] = np.nan
+for idx in missing_indices[len(missing_indices)//2:]:
+    df.loc[idx, 'Region'] = np.nan
+
+# Ajouter quelques doublons (2% des données)
+duplicate_indices = random.sample(range(len(df)), int(len(df) * 0.02))
+duplicates = df.iloc[duplicate_indices].copy()
+df = pd.concat([df, duplicates], ignore_index=True)
+
+# Mélanger les données
+df = df.sample(frac=1).reset_index(drop=True)
+
+# Sauvegarder le dataset
+output_path = '../data/ecommerce_data.csv'
+df.to_csv(output_path, index=False)
+
+print("✅ Dataset e-commerce généré avec succès!")
+print(f"📊 Nombre d'enregistrements: {len(df)}")
+print(f"📁 Fichier sauvegardé: {output_path}")
+print(f"\n📋 Aperçu des données:")
+print(df.head(10))
+print(f"\n📊 Résumé statistique:")
+print(df.describe())
+print(f"\n🏷️  Produits uniques: {df['Product'].nunique()}")
+print(f"🏷️  Catégories: {df['Category'].nunique()}")
+print(f"🌍 Régions: {df['Region'].nunique()}")
+print(f"👥 Clients uniques: {df['Customer ID'].nunique()}")
+print(f"\n💰 Revenu total estimé: ${(df['Quantity'] * df['Price']).sum():,.2f}")
+
+# Créer un fichier d'information sur le dataset
+info_text = f"""
+# Dataset Information - E-commerce Sales Data
+
+## Overview
+- **Total Records**: {len(df)}
+- **Date Range**: {df['Order Date'].min()} to {df['Order Date'].max()}
+- **Products**: {df['Product'].nunique()} unique products
+- **Categories**: {df['Category'].nunique()} categories
+- **Regions**: {df['Region'].nunique()} regions
+- **Customers**: {df['Customer ID'].nunique()} unique customers
+
+## Columns Description
+1. **Order ID**: Unique identifier for each order
+2. **Product**: Name of the product sold
+3. **Category**: Product category (Electronics, Accessories, Office Equipment, Furniture)
+4. **Quantity**: Number of units sold
+5. **Price**: Unit price in USD
+6. **Order Date**: Date of the order
+7. **Customer ID**: Unique customer identifier
+8. **Region**: Geographic region of the sale
+
+## Data Quality
+- Missing values: ~5% in Customer ID and Region fields
+- Duplicates: ~2% duplicate records (realistic for e-commerce data)
+- All numeric values are positive
+- Dates span the last 12 months
+
+## Usage
+This dataset is designed for:
+- Sales trend analysis
+- Product performance evaluation
+- Regional sales comparison
+- Customer behavior analysis
+- Revenue forecasting
+"""
+
+with open('../data/dataset_info.txt', 'w') as f:
+    f.write(info_text)
+
+print("\n📄 Informations du dataset sauvegardées: ../data/dataset_info.txt")
