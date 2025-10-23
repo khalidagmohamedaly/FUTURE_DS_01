@@ -1,0 +1,407 @@
+# 🎨 Guide de Création du Dashboard Power BI
+
+**Future Interns - Task 1: Business Sales Dashboard**  
+**Intern: KHALID AG MOHAMED ALY**
+
+---
+
+## 📋 Étapes de Création du Dashboard
+
+### Étape 1 : Importer les Données dans Power BI
+
+1. **Ouvrir Power BI Desktop**
+2. Cliquer sur **"Get Data" → "Text/CSV"**
+3. Sélectionner le fichier `data_cleaned.csv`
+4. Cliquer sur **"Load"**
+
+### Étape 2 : Créer des Mesures DAX
+
+Dans l'onglet **"Modeling"**, créer les mesures suivantes :
+
+```dax
+// Revenu Total
+Total Revenue = SUM('data_cleaned'[Total Sales])
+
+// Nombre de Commandes
+Total Orders = COUNTROWS('data_cleaned')
+
+// Panier Moyen
+Average Order Value = DIVIDE([Total Revenue], [Total Orders], 0)
+
+// Quantité Totale
+Total Quantity = SUM('data_cleaned'[Quantity])
+
+// Nombre de Clients Uniques
+Unique Customers = DISTINCTCOUNT('data_cleaned'[Customer ID])
+
+// Nombre de Produits Uniques
+Unique Products = DISTINCTCOUNT('data_cleaned'[Product])
+
+// Revenu Année Précédente (si données disponibles)
+Revenue LY = CALCULATE(
+    [Total Revenue],
+    SAMEPERIODLASTYEAR('data_cleaned'[Order Date])
+)
+
+// Croissance YoY
+YoY Growth = 
+DIVIDE(
+    [Total Revenue] - [Revenue LY],
+    [Revenue LY],
+    0
+) * 100
+
+// Revenu Mois en Cours
+Revenue MTD = TOTALMTD([Total Revenue], 'data_cleaned'[Order Date])
+
+// Top Produit
+Top Product = 
+FIRSTNONBLANK(
+    TOPN(
+        1,
+        VALUES('data_cleaned'[Product]),
+        [Total Revenue],
+        DESC
+    ),
+    1
+)
+```
+
+---
+
+## 🎨 Disposition du Dashboard
+
+### Page 1 : Vue d'Ensemble (Overview)
+
+**Layout suggéré:**
+
+```
+┌─────────────────────────────────────────────────────────┐
+│                    TITRE PRINCIPAL                       │
+│          E-COMMERCE SALES DASHBOARD 2025                │
+└─────────────────────────────────────────────────────────┘
+
+┌─────────────┬─────────────┬─────────────┬─────────────┐
+│   💰 Total  │  📦 Nombre  │  💵 Panier  │  👥 Clients │
+│   Revenue   │  Commandes  │   Moyen     │  Uniques    │
+│   $XXX,XXX  │    X,XXX    │   $XXX      │    X,XXX    │
+└─────────────┴─────────────┴─────────────┴─────────────┘
+
+┌────────────────────────────────┬──────────────────────┐
+│                                │                      │
+│   📈 Tendance des Ventes       │   🏆 Top 5          │
+│   (Line Chart)                 │   Produits          │
+│                                │   (Bar Chart)       │
+│                                │                      │
+└────────────────────────────────┴──────────────────────┘
+
+┌────────────────────────────────┬──────────────────────┐
+│                                │                      │
+│   🏷️ Revenus par Catégorie     │   🌍 Ventes par     │
+│   (Donut Chart)                │   Région (Map)      │
+│                                │                      │
+└────────────────────────────────┴──────────────────────┘
+```
+
+#### Composants à Ajouter :
+
+1. **Cards (KPIs) - En Haut**
+   - **Total Revenue**: Format = Currency, Couleur = Vert
+   - **Total Orders**: Format = Whole Number, Couleur = Bleu
+   - **Average Order Value**: Format = Currency, Couleur = Orange
+   - **Unique Customers**: Format = Whole Number, Couleur = Violet
+
+2. **Line Chart - Tendance des Ventes**
+   - **Axe X**: Order Date (par mois)
+   - **Axe Y**: Total Revenue
+   - **Options**: Markers activés, Data labels
+   - **Couleur**: Gradient bleu
+
+3. **Bar Chart - Top 5 Produits**
+   - **Axe Y**: Product (Top 5)
+   - **Axe X**: Total Revenue
+   - **Options**: Data labels, Tri décroissant
+   - **Couleur**: Dégradé vert à rouge
+
+4. **Donut Chart - Revenus par Catégorie**
+   - **Legend**: Category
+   - **Values**: Total Revenue
+   - **Options**: % labels, Légende à droite
+
+5. **Map - Ventes par Région**
+   - **Location**: Region
+   - **Size**: Total Revenue
+   - **Tooltips**: Orders, Quantity
+
+---
+
+### Page 2 : Analyse des Produits
+
+**Visuels à inclure:**
+
+1. **Matrix Table - Performance Produits**
+   ```
+   Rows: Product
+   Values: 
+   - Total Revenue
+   - Total Quantity
+   - Average Price
+   - Number of Orders
+   ```
+
+2. **Scatter Chart - Prix vs Quantité**
+   - X-Axis: Price
+   - Y-Axis: Quantity
+   - Legend: Category
+   - Size: Total Revenue
+
+3. **Tree Map - Part de Marché par Produit**
+   - Group: Category > Product
+   - Values: Total Revenue
+
+4. **Column Chart - Ventes Mensuelles par Catégorie**
+   - X-Axis: Month
+   - Y-Axis: Total Revenue
+   - Legend: Category
+   - Type: Stacked
+
+---
+
+### Page 3 : Analyse Temporelle
+
+**Visuels à inclure:**
+
+1. **Line and Stacked Column Chart**
+   - Colonnes: Monthly Orders
+   - Ligne: Monthly Revenue
+   - X-Axis: Month
+
+2. **Matrix - Ventes par Jour de la Semaine**
+   - Rows: Day of Week
+   - Values: Total Revenue, Orders
+
+3. **Area Chart - Accumulation des Revenus**
+   - X-Axis: Order Date
+   - Y-Axis: Cumulative Revenue
+
+4. **Calendar Heatmap** (si possible avec visuel personnalisé)
+   - Intensité basée sur les ventes quotidiennes
+
+---
+
+### Page 4 : Analyse Géographique
+
+**Visuels à inclure:**
+
+1. **Filled Map - Ventes par Région**
+   - Location: Region
+   - Value: Total Revenue
+   - Tooltips détaillés
+
+2. **Clustered Bar Chart - Comparaison Régions**
+   - Y-Axis: Region
+   - Values: Revenue, Orders, Quantity
+
+3. **Table - Détails par Région**
+   - Colonnes: Region, Revenue, Orders, Avg Order Value, Top Product
+
+4. **Ribbon Chart - Évolution du Classement Régional**
+   - X-Axis: Month
+   - Y-Axis: Total Revenue
+   - Legend: Region
+
+---
+
+## 🎨 Design et Formatage
+
+### Palette de Couleurs Recommandée
+
+```
+Primary: #1F77B4 (Bleu)
+Secondary: #FF7F0E (Orange)
+Success: #2CA02C (Vert)
+Warning: #D62728 (Rouge)
+Info: #9467BD (Violet)
+Neutral: #7F7F7F (Gris)
+```
+
+### Police et Style
+
+- **Titre Principal**: Segoe UI Bold, 24pt
+- **Titres de Sections**: Segoe UI Semibold, 16pt
+- **KPIs**: Segoe UI Bold, 36pt
+- **Labels**: Segoe UI, 11pt
+
+### Thème du Dashboard
+
+1. **Background**: Blanc (#FFFFFF) ou Gris clair (#F5F5F5)
+2. **Cards**: Blanc avec ombre légère
+3. **Bordures**: Gris clair (#E0E0E0)
+4. **Hover Effects**: Activés sur tous les visuels
+
+---
+
+## 🔧 Fonctionnalités Interactives
+
+### 1. Filtres (Slicers)
+
+Ajouter les slicers suivants en haut ou à gauche du dashboard :
+
+- **Date Range Slicer**: Between mode
+- **Category Slicer**: Dropdown ou List
+- **Region Slicer**: Dropdown
+- **Product Slicer**: Search enabled
+
+### 2. Boutons de Navigation
+
+Créer des boutons pour naviguer entre les pages :
+- Overview
+- Products
+- Time Analysis
+- Geographic Analysis
+
+### 3. Tooltips Personnalisés
+
+Créer une page tooltip avec :
+- Product image (si disponible)
+- Detailed metrics
+- Trend sparkline
+
+### 4. Drill-Through
+
+Configurer drill-through de :
+- Category → Products
+- Region → Detailed sales
+- Month → Daily breakdown
+
+---
+
+## 📊 Formules DAX Avancées
+
+### Mesures de Comparaison
+
+```dax
+// Comparaison Mois Précédent
+Revenue PM = 
+CALCULATE(
+    [Total Revenue],
+    DATEADD('data_cleaned'[Order Date], -1, MONTH)
+)
+
+Revenue vs PM % = 
+DIVIDE(
+    [Total Revenue] - [Revenue PM],
+    [Revenue PM],
+    0
+) * 100
+
+// Moyenne Mobile 3 Mois
+Revenue MA3 = 
+CALCULATE(
+    [Total Revenue],
+    DATESINPERIOD(
+        'data_cleaned'[Order Date],
+        LASTDATE('data_cleaned'[Order Date]),
+        -3,
+        MONTH
+    )
+) / 3
+```
+
+### Mesures de Classement
+
+```dax
+// Rang Produit
+Product Rank = 
+RANKX(
+    ALL('data_cleaned'[Product]),
+    [Total Revenue],
+    ,
+    DESC,
+    Dense
+)
+
+// % du Total
+Revenue % of Total = 
+DIVIDE(
+    [Total Revenue],
+    CALCULATE([Total Revenue], ALL('data_cleaned')),
+    0
+) * 100
+```
+
+### Mesures Conditionnelles
+
+```dax
+// Indicateur de Performance
+Performance Indicator = 
+SWITCH(
+    TRUE(),
+    [YoY Growth] > 10, "🟢 Excellent",
+    [YoY Growth] > 0, "🟡 Bon",
+    [YoY Growth] > -5, "🟠 Attention",
+    "🔴 Alerte"
+)
+```
+
+---
+
+## ✅ Checklist Finale
+
+Avant de publier votre dashboard :
+
+- [ ] Tous les visuels chargent correctement
+- [ ] Les filtres fonctionnent sur tous les visuels
+- [ ] Les couleurs sont cohérentes
+- [ ] Les titres sont clairs et descriptifs
+- [ ] Les formats de nombres sont appropriés
+- [ ] Les tooltips sont informatifs
+- [ ] La navigation entre pages fonctionne
+- [ ] Le dashboard est responsive
+- [ ] Les données sont à jour
+- [ ] Performance acceptable (< 3 sec de chargement)
+
+---
+
+## 📸 Captures d'Écran
+
+Après avoir créé votre dashboard, prendre des captures d'écran :
+
+1. **Vue d'ensemble complète** (Page 1)
+2. **Zoom sur les KPIs**
+3. **Détail d'un graphique interactif** (avec tooltip)
+4. **Vue avec filtres appliqués**
+5. **Chaque page supplémentaire**
+
+Sauvegarder dans : `dashboards/dashboard_screenshots/`
+
+Noms suggérés :
+- `01_overview.png`
+- `02_kpis.png`
+- `03_products.png`
+- `04_trends.png`
+- `05_regions.png`
+- `06_filters_applied.png`
+
+---
+
+## 🚀 Publication
+
+### Option 1 : Power BI Service (si vous avez un compte)
+
+1. Cliquer sur **"Publish"** dans Power BI Desktop
+2. Sélectionner votre workspace
+3. Configurer l'actualisation automatique
+4. Partager le lien
+
+### Option 2 : Fichier Local
+
+1. Sauvegarder le fichier `.pbix`
+2. Exporter en PDF pour partage
+3. Créer une vidéo de démonstration
+
+---
+
+## 🎥 Vidéo de Démonstration
+
+Pour vo
